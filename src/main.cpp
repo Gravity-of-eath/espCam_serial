@@ -32,7 +32,7 @@ This is what you need to do:
 Should work then
 */
 // #include "home_wifi_multi.h"
-const char BOUNDARY[] = "-1234567890987654321-";
+const char BOUNDARY[] = "-123454321-";
 const int bdrLen = strlen(BOUNDARY);
 OV2640 cam;
 bool flag = false;
@@ -48,10 +48,9 @@ void handle_jpg_stream(void)
   len[2] = (byte)(s >> 8);
   len[1] = (byte)(s >> 16);
   len[0] = (byte)(s >> 24);
-  // Serial.write(0x04);
   Serial1.write(len, sizeof(len));
-  Serial1.write((char *)cam.getfb(), s);
-  // Serial.write("Serial1 write data len=" + s + 3);
+  Serial1.write(cam.getfb(), s);
+  delay(16);
 }
 
 void setup()
@@ -59,7 +58,7 @@ void setup()
 
   Serial.begin(115200);
   Serial.write("app-runing");
-  Serial1.begin(115200, SERIAL_8N1, 14, 15); // data serial
+  Serial1.begin(921600, SERIAL_8N1, 14, 15); // data serial
   while (!Serial1)
     ; // wait for serial connection.
 
@@ -86,10 +85,10 @@ void setup()
   config.pixel_format = PIXFORMAT_JPEG;
 
   // Frame parameters
-  //  config.frame_size = FRAMESIZE_UXGA;
-  config.frame_size = FRAMESIZE_HD;
-  config.jpeg_quality = 12;
-  config.fb_count = 2;
+  config.frame_size = FRAMESIZE_SVGA;
+  // config.frame_size = FRAMESIZE_VGA;
+  config.jpeg_quality = 32;
+  config.fb_count = 1;
 
 #if defined(CAMERA_MODEL_ESP_EYE)
   pinMode(13, INPUT_PULLUP);
@@ -107,7 +106,6 @@ void loop()
     if (a == 1)
     {
       flag = true;
-
       Serial.write(BOUNDARY, bdrLen);
       // Serial1.write(BOUNDARY, bdrLen);
     }
