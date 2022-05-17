@@ -32,7 +32,7 @@ This is what you need to do:
 Should work then
 */
 // #include "home_wifi_multi.h"
-const char BOUNDARY[] = "\n-1234567890987654321-\n";
+const char BOUNDARY[] = "-1234567890987654321-";
 const int bdrLen = strlen(BOUNDARY);
 OV2640 cam;
 bool flag = false;
@@ -41,7 +41,7 @@ void handle_jpg_stream(void)
 {
 
   cam.run();
-  // Serial.write(BOUNDARY, bdrLen);
+  Serial1.write(BOUNDARY, bdrLen);
   int s = cam.getSize();
   byte *len = new byte[4]{1, 2, 3, 4};
   len[3] = (byte)(s);
@@ -49,8 +49,8 @@ void handle_jpg_stream(void)
   len[1] = (byte)(s >> 16);
   len[0] = (byte)(s >> 24);
   // Serial.write(0x04);
-  Serial.write(len, sizeof(len));
-  Serial.write((char *)cam.getfb(), s);
+  Serial1.write(len, sizeof(len));
+  Serial1.write((char *)cam.getfb(), s);
   // Serial.write("Serial1 write data len=" + s + 3);
 }
 
@@ -58,9 +58,9 @@ void setup()
 {
 
   Serial.begin(115200);
-
-  // Serial1.begin(115200, SERIAL_8N1, 0, 16); // data serial
-  while (!Serial)
+  Serial.write("app-runing");
+  Serial1.begin(115200, SERIAL_8N1, 14, 15); // data serial
+  while (!Serial1)
     ; // wait for serial connection.
 
   camera_config_t config;
@@ -97,42 +97,32 @@ void setup()
 #endif
 
   cam.init(config);
-
-  // IPAddress ip;
-
-  // WiFi.mode(WIFI_STA);
-  // WiFi.begin(SSID1, PWD1);
-  // while (!Serial1.available())
-  // {
-  //   delay(500);
-  //   Serial.print(F("."));
-  // }
-
-  // Serial.println(F("Serial1(data chanl) connected"));
-  // Serial.print("baudRate：");
-  // Serial.println(Serial1.baudRate());
 }
 
 void loop()
 {
-  if (Serial.available())
+  if (Serial1.available())
   {
-    int a = Serial.read();
+    int a = Serial1.read();
     if (a == 1)
     {
       flag = true;
+
+      Serial.write(BOUNDARY, bdrLen);
+      // Serial1.write(BOUNDARY, bdrLen);
     }
     else if (a == 2)
     {
       flag = false;
     }
+    char buf[32];
+    sprintf(buf, "-----%d----\r\n", flag);
+    Serial.write(buf);
+    Serial.write("\r\n");
   }
-  // char buf[32];
-  // sprintf(buf, "-----%d----\r\n", flag);
-  // Serial.write(buf);
-  // Serial.write("\r\n");
   if (flag)
   {
+    Serial.write("- ");
     handle_jpg_stream();
   }
 }
